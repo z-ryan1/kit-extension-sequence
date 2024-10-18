@@ -18,7 +18,7 @@ def create_payload(usd_context: omni.usd.UsdContext, path_to: Sdf.Path, asset_pa
 def print_gpu_memory(loop_val):
         gpus = GPUtil.getGPUs()
         for gpu in gpus:
-            carb.log_warn(f"load {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used")
+            carb.log_warn(f"load {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used  Chris Fowler")
 def print_gpu_memory_unload(loop_val):
         gpus = GPUtil.getGPUs()
         for gpu in gpus:
@@ -31,19 +31,25 @@ class SequenceExtension(omni.ext.IExt):
         default_prim = UsdGeom.Xform.Define(stage, world_path)
 
         stage.SetDefaultPrim(default_prim.GetPrim())
-        base_directory = "omniverse://localhost/Users/admin/LB_test/low_res_test/ns_converted/ns_00000_thd_0"
+        base_directory = "C:/Users/ovlaunch1/Downloads/ns_prod_converted/ns_00000_thd_"
+        base_directory2 = "C:/Users/ovlaunch1/Downloads/wn_prod_converted/wn_00000_thd_0"
         self._window = ui.Window("My Window", width=300, height=300)
         with self._window.frame:
             with ui.VStack():
                 label = ui.Label("")
                 
                 def on_click():
+                    j = 1
                     label.text = f"start"
-                    for i in range(1, 9):
+                    for i in range(1, 5):
                         context: omni.usd.UsdContext = omni.usd.get_context()
-                        path = f"{base_directory}{i}_stl.usd"
+                        path = f"{base_directory}{i:0>2}_stl.usd"
                         payload_prim: Usd.Prim = create_payload(context, Sdf.Path("/World/payload_prim"), path)
                         payload_prim.Load()
+                        context2: omni.usd.UsdContext = omni.usd.get_context()
+                        path2 = f"{base_directory2}{i}_stl.usd"
+                        payload_prim2: Usd.Prim = create_payload(context2, Sdf.Path("/World/payload_prim2"), path2)
+                        payload_prim2.Load()
                         print_gpu_memory(str(i))
 
                 def on_reset():
