@@ -50,11 +50,11 @@ class MyExtension(omni.ext.IExt):
 
 
 import asyncio
-import carb
+import carb # type: ignore
 
-import omni.ext
-import omni.ui as ui
-import omni.kit.ui  # for get_editor_menu
+import omni.ext # type: ignore
+import omni.ui as ui # type: ignore
+import omni.kit.ui  # type: ignore # for get_editor_menu
 
 from functools import partial
 
