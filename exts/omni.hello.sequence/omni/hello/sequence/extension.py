@@ -150,9 +150,10 @@ class SequenceExtension(omni.ext.IExt):
     # This event fires very frequently. A callback with long-running code will block the
     # UI and make the app unresponsive.
     def on_update(self, e: carb.events.IEvent):
-        #carb.log_warn(f"Mission Critical Error HERE")
+        #carb.log_warn(f"def on_update in SequenceExtension")
         if self._windows:  # if even init
             for window in self._windows:
+                carb.log_warn(f"def on_update within window for loop 156")
                 window.on_update(e.payload["dt"])
 
 
