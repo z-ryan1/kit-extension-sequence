@@ -1,0 +1,79 @@
+import omni.ext
+import omni.ui as ui
+import carb 
+import time
+from pxr import Usd, Sdf, Tf, UsdGeom, UsdLux, Gf, UsdShade, Vt
+import omni.kit.viewport.utility as vu
+omni.kit.pipapi.install("GPUtil")
+import GPUtil
+import omni.timeline
+
+def create_payload(usd_context: omni.usd.UsdContext, path_to: Sdf.Path, asset_path: str) -> Usd.Prim:
+    omni.kit.commands.execute("CreatePayload",
+        usd_context=usd_context,
+        path_to=path_to,
+        asset_path=asset_path, 
+    )
+    return usd_context.get_stage().GetPrimAtPath(path_to)
+
+def print_gpu_memory(loop_val):
+        gpus = GPUtil.getGPUs()
+        for gpu in gpus:
+            carb.log_warn(f"load {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used  Chris Fowler")
+def print_gpu_memory_unload(loop_val):
+        gpus = GPUtil.getGPUs()
+        for gpu in gpus:
+            carb.log_warn(f"unload {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used")
+
+class SequenceExtension(omni.ext.IExt):
+    def on_startup(self, ext_id):
+        stage = omni.usd.get_context().get_stage()
+        world_path = Sdf.Path("/World")
+        default_prim = UsdGeom.Xform.Define(stage, world_path)
+       
+        timeline = omni.timeline.get_timeline_interface()
+        timeline.set_start_time(1)
+        timeline.set_end_time(10)  
+        
+
+        stage.SetDefaultPrim(default_prim.GetPrim())
+        base_directory = "C:/Users/ovlaunch1/Downloads/ns_prod_converted/ns_00000_thd_"
+        base_directory2 = "C:/Users/ovlaunch1/Downloads/wn_prod_converted/wn_00000_thd_0"
+        self._window = ui.Window("My Window", width=300, height=300)
+        with self._window.frame:
+            with ui.VStack():
+                label = ui.Label("")
+                
+                def on_click():
+                    label.text = f"start"
+                    timeline.play()
+                    for i in range(1, 5):
+                   
+                        context: omni.usd.UsdContext = omni.usd.get_context()
+                        path = f"{base_directory}{i:0>2}_stl.usd"
+                        payload_prim: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim_{i}"), path)
+                        payload_prim.Load()
+                        context2: omni.usd.UsdContext = omni.usd.get_context()
+                        path2 = f"{base_directory2}{i}_stl.usd"
+                        payload_prim2: Usd.Prim = create_payload(context2, Sdf.Path(f"/World/payload_prim2_{i}"), path2)
+                        payload_prim2.Load()
+                        timeline.forward_one_frame()
+                        #print_gpu_memory(str(i))
+                        payload_prim.Unload()
+                        payload_prim2.Unload()
+
+                     
+
+                def on_reset():
+                    world_path = Sdf.Path("/World")
+                    for prim in stage.TraverseAll():
+                        prim.Unload()
+                        print_gpu_memory(str(prim))
+
+                with ui.HStack():
+                    ui.Button("Start", clicked_fn=on_click)
+                    ui.Button("Reset", clicked_fn=on_reset)
+
+
+    def on_shutdown(self):
+        print("[omni.hello.sequence] SequenceExtension shutdown")
