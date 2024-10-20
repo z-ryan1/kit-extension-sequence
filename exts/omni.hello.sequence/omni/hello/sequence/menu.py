@@ -80,8 +80,8 @@ class MenuEntry():
     def on_update(self, delta: float):
         # ignore if we are not initialized yet!  This can and will be called before __init__ is done.
         if hasattr(self, '_window') and self._window:
-            if hasattr(self._window, 'update') and callable(getattr(self._window, 'update')):
-                self._window.update(delta)
+            if hasattr(self, 'update') and callable(getattr(self, 'update')):
+                self.update(delta)
 
     def on_window_visibility_changed(self, visible: bool):
         if not visible:

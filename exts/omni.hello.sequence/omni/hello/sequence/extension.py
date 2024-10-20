@@ -27,14 +27,14 @@ def print_gpu_memory_unload(loop_val):
         gpus = GPUtil.getGPUs()
         for gpu in gpus:
             carb.log_warn(f"unload {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used")
-
+#aaa
 class Simulation:
     def __init__(self):
         carb.log_warn(f"Simulation Init")
         self.step = 1
         self.start_time = 0
         self.state = f"Uninitialized"
-        self.last_valid_frame = 4
+        self.last_valid_frame = 5
 
         self.base_directory = "C:/Users/ovlaunch1/Downloads/ns_prod_converted/ns_00000_thd_"
         self.base_directory2 = "C:/Users/ovlaunch1/Downloads/wn_prod_converted/wn_00000_thd_0"
@@ -58,12 +58,16 @@ class Simulation:
         payload_prim2.Load()
 
     async def async_on_update(self,dt):
-        carb.log_warn(f"Upate Time Step")
+        # test
+        #carb.log_warn(f"Upate Time Step")
         if self.state != f"Running":
             return
-        if self.step == self.last_valid_frame:
-            return
-        if time.time() - self.start_time > 1000:
+        if self.step > self.last_valid_frame:
+            # for now we are going to loop, for dev reasons
+            # When we are done, switch to just return
+            self.step = 1
+            
+        if time.time() - self.start_time > 1.0:
             self.start_time = time.time()
             await self.async_run_step()
             self.step = self.step + 1
@@ -82,21 +86,21 @@ class Simulation:
         carb.log_warn(f"Simulation Closed")
         self.stop()
 
-
-class MenuEntryDemoLLM(MenuEntry):
+#bbb
+class LBPMUNCDemo(MenuEntry):
     async def async_on_start(self):
         if self.simulation:
             self.simulation.start()
 
     async def async_on_update(self,dt):
         if self.simulation: 
-            await self.simulation.async_on_update(self,dt)
+            await self.simulation.async_on_update(dt)
             self.label.text = self.simulation.getstate()
         else:
             self.label.text = f"Simulation Not Created"
 
     def update(self,dt):
-        carb.log_warn(f" calling update(self,dt) in MenuEntryDemoLLM class")
+        #carb.log_warn(f" calling update(self,dt) in LBPMUNCDemo class")
         asyncio.ensure_future(self.async_on_update(dt))
 
     async def async_on_stop(self):
@@ -120,7 +124,7 @@ class MenuEntryDemoLLM(MenuEntry):
                 def on_stop():
                     asyncio.ensure_future(self.async_on_stop())
 
-                with ui.HStack():
+                with ui.HStack( height=30):
                     ui.Button("Start", clicked_fn=on_start)
                     ui.Button("Stop", clicked_fn=on_stop)
 
@@ -130,10 +134,10 @@ class MenuEntryDemoLLM(MenuEntry):
             self.simulation.close()
             self.simulation = None                    
 
-
+#ccc
 class SequenceExtension(omni.ext.IExt):
     def on_startup(self, ext_id):
-        self._windows = [MenuEntryDemoLLM('Lattice Boltzmann Porous Medium Demo', 'Lattice Boltzmann Porous Medium Demo/Show Window')]
+        self._windows = [LBPMUNCDemo('Lattice Boltzmann Porous Medium Demo', 'Lattice Boltzmann Porous Medium Demo/Show Window')]
         # App provides common event bus. It is event queue which is popped every update (frame).
         self._bus = omni.kit.app.get_app().get_update_event_stream()
         self._sub = self._bus.create_subscription_to_push(self.on_update, name=f"SequenceExtension OnUpdate")
@@ -150,10 +154,10 @@ class SequenceExtension(omni.ext.IExt):
     # This event fires very frequently. A callback with long-running code will block the
     # UI and make the app unresponsive.
     def on_update(self, e: carb.events.IEvent):
-        #carb.log_warn(f"def on_update in SequenceExtension")
+        # carb.log_warn(f"def on_update in SequenceExtension")
         if self._windows:  # if even init
             for window in self._windows:
-                carb.log_warn(f"def on_update within window for loop 156")
+                #carb.log_warn(f"def on_update within window for loop 156")
                 window.on_update(e.payload["dt"])
 
 
