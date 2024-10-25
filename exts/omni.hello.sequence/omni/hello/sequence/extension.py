@@ -1,6 +1,5 @@
 import omni.ext
 import omni.ui as ui
-import carb
 import asyncio
 from pxr import Sdf, UsdGeom, Gf, UsdShade
 
@@ -13,6 +12,10 @@ def create_material(stage, mat_name):
     shader.CreateIdAttr("UsdPreviewSurface")
     shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set((1.0, 0.0, 0.0))  # Red color
     material.CreateSurfaceOutput().ConnectToSource(shader.CreateOutput('surface', Sdf.ValueTypeNames.Token))
+    opacity_input = shader.CreateInput("opacity", Sdf.ValueTypeNames.Float)
+
+    # Set the opacity value
+    opacity_input.Set(0.5)  # Change this value to set the desired opacity
     
     return material
 
@@ -38,7 +41,7 @@ def create_camera_on_startup(stage, camera_path="/World/MyCamera"):
     ''''
     This is where you can change the starting camera position
     '''
-    pos = Gf.Vec3f(123, 126, 1100)
+    pos = Gf.Vec3f(123, 126, 1100) # change starting position
     translate_op = xform.AddTranslateOp()
 
     translate_op.Set(pos)
@@ -50,7 +53,7 @@ def update_camera_position(stage, camera_path, target_prim, translate_op):
     target_pos = translate_op.Get()
 
     # Set the camera position above the target
-    new_camera_pos = Gf.Vec3f(target_pos[0], target_pos[1], target_pos[2] + 10.0)
+    new_camera_pos = Gf.Vec3f(target_pos[0], target_pos[1], target_pos[2] + 10.0) # can change to move camera faster
     translate_op.Set(new_camera_pos)
 
 
@@ -70,6 +73,7 @@ async def smooth_transition(current_ns, current_wn, overlap_duration, stage, cam
 
         if imageable_ns:
             imageable_ns.MakeInvisible()
+
         if imageable_wn:
             imageable_wn.MakeInvisible()
 
@@ -89,8 +93,8 @@ class SequenceExtension(omni.ext.IExt):
         camera_path = "/World/MyCamera"
         self.camera, translate_op = create_camera_on_startup(stage, camera_path )
 
-        base_directory_wn = "omniverse://localhost/Users/admin/std_res_prod/wn_prod_converted/wn_00000_thd_"
-        base_directory_ns = "omniverse://localhost/Users/admin/std_res_prod/ns_prod_converted/ns_00000_thd_"
+        base_directory_wn = "/home/zoe/wn_prod_converted/wn_00000_thd_"
+        base_directory_ns = "/home/zoe/ns_prod_converted/ns_00000_thd_"
 
         self.loaded_prims_wn = [] 
         self.loaded_prims_ns = [] 
@@ -148,7 +152,7 @@ class SequenceExtension(omni.ext.IExt):
                     prims_wn = [omni.usd.get_context().get_stage().GetPrimAtPath(path_wn) for path_wn in self.loaded_prims_wn]
                     prims_ns = [omni.usd.get_context().get_stage().GetPrimAtPath(path_ns) for path_ns in self.loaded_prims_ns]
 
-                    await sequential_visibility_change(prims_ns, prims_wn, 0.1, stage, camera_path, translate_op)
+                    await sequential_visibility_change(prims_ns, prims_wn, 0.1, stage, camera_path, translate_op) # change 0.1 to change duration
                     label.text = "All prims have been shown and hidden."
 
                 def call_async(fn):
