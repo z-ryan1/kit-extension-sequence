@@ -83,6 +83,11 @@ async def sequential_visibility_change(prims_ns, prims_wn, overlap_duration, sta
         await smooth_transition(current_ns, current_wn, overlap_duration, stage, camera_path, translate_op)
 
 class SequenceExtension(omni.ext.IExt):
+
+ 
+
+
+
     def on_startup(self, ext_id):
         stage = omni.usd.get_context().get_stage()
         world_path = Sdf.Path("/World")
@@ -93,8 +98,8 @@ class SequenceExtension(omni.ext.IExt):
         camera_path = "/World/MyCamera"
         self.camera, translate_op = create_camera_on_startup(stage, camera_path )
 
-        base_directory_wn = "/home/zoe/wn_prod_converted/wn_00000_thd_"
-        base_directory_ns = "/home/zoe/ns_prod_converted/ns_00000_thd_"
+        base_directory_wn = "E:/fowler_keynote/awn_converted/awn_00000_thd_"
+        base_directory_ns = "E:/fowler_keynote/awn_converted/awn_00000_thd_"
 
         self.loaded_prims_wn = [] 
         self.loaded_prims_ns = [] 
@@ -111,8 +116,9 @@ class SequenceExtension(omni.ext.IExt):
                     # Create a red material for NS prims
                     red_material = create_material(context.get_stage(), "RedMaterial")
 
-                    for i in range(1, 32):
-                        val = f"{i:02}"
+                    for i in range(1, 400):
+
+                        val = f"{i:03}"
                         path_wn = f"{base_directory_wn}{val}_stl.usd"
                         prim_path_wn = f"/World/payload_prim_wn_{val}"
                         create_payload(context, Sdf.Path(prim_path_wn), path_wn)

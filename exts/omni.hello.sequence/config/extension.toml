@@ -24,8 +24,7 @@ keywords = ["kit", "example"]
 # # Icon to show in the extension manager
 # icon = "data/icon.png"
 
-# # Preview to show in the extension manager
-# preview_image = "data/preview.png"
+
 
 
 # Use omni.ui to build simple UI
