@@ -48,8 +48,8 @@ class Simulation:
         self.state = f"Uninitialized"
         self.last_valid_frame = 400
 
-        self.start_frame = 10
-        self.num_to_batch = 6
+        self.start_frame = 350
+        self.num_to_batch = 8
         self.batch_step = 1
 
         self.path = None
@@ -158,15 +158,14 @@ class Simulation:
             check_for_valid_prim = self.stage.GetPrimAtPath(foo_prim_path)
             check_for_valid_prim2 = self.stage.GetPrimAtPath(foo_prim_path2)
             #carb.log_warn(f"${j} self.path=${self.path}  check_for_prim=${foo_prim_path}")
+            context: omni.usd.UsdContext = omni.usd.get_context()
             if (check_for_valid_prim is not None):
-                context: omni.usd.UsdContext = omni.usd.get_context()
-                
                 self.payload_prim: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim_{j}"), self.path)
-    
+                self.payload_prim2: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim2_{j}"), self.path2)
         
             if (check_for_valid_prim2 is not None):
                 context2: omni.usd.UsdContext = omni.usd.get_context()
-                self.payload_prim2: Usd.Prim = create_payload(context2, Sdf.Path(f"/World/payload_prim2_{j}"), self.path2)
+                
     
                 carb.log_warn(f"Batch loading: ${j}")
 
@@ -231,8 +230,6 @@ class Simulation:
         if self.state != f"Running":
             return
         if self.step > self.last_valid_frame:
-            # for now we are going to loop, for dev reasons
-            # When we are done, switch to just return
             await self.async_run_step_unload()
             self.step = self.start_frame
         time_difference = time.time() - self.start_time
@@ -243,6 +240,8 @@ class Simulation:
                 await self.async_batch_load(self.step+2)
                 await self.async_batch_load(self.step+3)
                 await self.async_batch_load(self.step+4)
+                # await self.async_batch_load(self.step+5)
+                # await self.async_batch_load(self.step+6)
                 
             #if self.step > 1:
                 #await self.async_run_step_unload()  # unloads the existing payload-prim
@@ -253,16 +252,15 @@ class Simulation:
                     await self.async_batch_load(self.step+2)
                     await self.async_batch_load(self.step+3)
                     await self.async_batch_load(self.step+4)
-                #await self.async_run_step_unload()
-            #if self.step > self.num_to_batch + 1: # just need to be bigger than the num_to_batch for now
-                #if self.step%self.num_to_batch == 0:
-                    #await self.async_batch_unload()
-            carb.log_warn(f"time_difference={time_difference}")
-            self.start_time = time.time()
-            await self.async_run_step_unload()
+                    # await self.async_batch_load(self.step+5)
+                    # await self.async_batch_load(self.step+6)
+
+            
             await self.async_run_step_load()
+            await self.async_run_step_unload()
             self.step = self.step + 1
             self.batch_counter = 0
+            self.start_time = time.time()
 
 
     def start(self):
