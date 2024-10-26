@@ -49,7 +49,7 @@ class Simulation:
         self.last_valid_frame = 400
 
         self.start_frame = 350
-        self.num_to_batch = 8
+        self.num_to_batch = 12
         self.batch_step = 1
 
         self.path = None
@@ -233,6 +233,10 @@ class Simulation:
                 await self.async_batch_load(self.step+4)
                 await self.async_batch_load(self.step+5)
                 await self.async_batch_load(self.step+6)
+                await self.async_batch_load(self.step+7)
+                await self.async_batch_load(self.step+8)
+                await self.async_batch_load(self.step+9)
+                await self.async_batch_load(self.step+10)
                 
             #if self.step > 1:
                 #await self.async_run_step_unload()  # unloads the existing payload-prim
@@ -245,6 +249,10 @@ class Simulation:
                     await self.async_batch_load(self.step+4)
                     await self.async_batch_load(self.step+5)
                     await self.async_batch_load(self.step+6)
+                    await self.async_batch_load(self.step+7)
+                    await self.async_batch_load(self.step+8)
+                    await self.async_batch_load(self.step+9)
+                    await self.async_batch_load(self.step+10)
 
             
             await self.async_run_step_load()  # This is actually a visibility function now
