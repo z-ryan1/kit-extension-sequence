@@ -72,43 +72,22 @@ class Simulation:
         return self.state
 
     async def async_run_step_load(self):
-        # This function will be a visibility binstead of loading step
         context: omni.usd.UsdContext = omni.usd.get_context()
-        
         self.path = f"{self.base_directory}{(self.step):0>3}_stl.usd"
-        #self.payload_prim: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim_{self.step+self.batch_counter}"), self.path)
-       
-        context2: omni.usd.UsdContext = omni.usd.get_context()
-        
         self.path2 = f"{self.base_directory2}{(self.step):0>3}_stl.usd"
-        #self.payload_prim2: Usd.Prim = create_payload(context2, Sdf.Path(f"/World/payload_prim2_{self.step+self.batch_counter}"), self.path2)
     
         first_prim_ns = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim_{self.step}"))
-        first_prim_wn = context2.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim2_{self.step}"))
+        first_prim_wn = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim2_{self.step}"))
                    
-        carb.log_warn(f"Got to changing the visibility of the first item at {self.step}")
         imageable_prim_ns = UsdGeom.Imageable(first_prim_ns)
         if imageable_prim_ns:
-            carb.log_warn(f"Just about to change imageable_prim_ns visibility at {self.step}")
-
             imageable_prim_ns.MakeVisible()
-
         imageable_prim_wn = UsdGeom.Imageable(first_prim_wn)
         if imageable_prim_wn:
             imageable_prim_wn.MakeVisible()
 
 
-        foo_prim_path3 = Sdf.Path(f"/World/payload_prim_{self.step-2}")
-        foo_prim_path4 = Sdf.Path(f"/World/payload_prim2_{self.step-2}")
         
-        check_for_valid_prim3 = self.stage.GetPrimAtPath(foo_prim_path3)
-        check_for_valid_prim4 = self.stage.GetPrimAtPath(foo_prim_path4)
-        
-        if (check_for_valid_prim3 is not None):
-            self.stage.RemovePrim(foo_prim_path3)
-
-        if (check_for_valid_prim4 is not None):    
-            self.stage.RemovePrim(foo_prim_path4)
 
     async def async_batch_load(self, j):
         carb.log_warn(f"In batch loading function at step:{self.step}")
@@ -153,15 +132,15 @@ class Simulation:
 
             #await asyncio.sleep(0.1)
 
-            foo_prim_path = Sdf.Path(f"/World/payload_prim_{self.step}")
-            foo_prim_path2 = Sdf.Path(f"/World/payload_prim2_{self.step}")
+            foo_prim_path = Sdf.Path(f"/World/payload_prim_{j}")
+            foo_prim_path2 = Sdf.Path(f"/World/payload_prim2_{j}")
             check_for_valid_prim = self.stage.GetPrimAtPath(foo_prim_path)
             check_for_valid_prim2 = self.stage.GetPrimAtPath(foo_prim_path2)
             #carb.log_warn(f"${j} self.path=${self.path}  check_for_prim=${foo_prim_path}")
             context: omni.usd.UsdContext = omni.usd.get_context()
             if (check_for_valid_prim is not None):
-                self.payload_prim: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim_{j}"), self.path)
-                self.payload_prim2: Usd.Prim = create_payload(context, Sdf.Path(f"/World/payload_prim2_{j}"), self.path2)
+                create_payload(context, Sdf.Path(f"/World/payload_prim_{j}"), f"{self.base_directory}{(j):0>3}_stl.usd")
+                create_payload(context, Sdf.Path(f"/World/payload_prim2_{j}"), f"{self.base_directory2}{(j):0>3}_stl.usd")
         
             if (check_for_valid_prim2 is not None):
                 context2: omni.usd.UsdContext = omni.usd.get_context()
@@ -216,13 +195,25 @@ class Simulation:
         first_prim_wn = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim2_{self.step-1}"))
         
 
-        imageable_prim_ns = UsdGeom.Imageable(first_prim_ns)
-        if imageable_prim_ns:
-            imageable_prim_ns.MakeInvisible()
+        # imageable_prim_ns = UsdGeom.Imageable(first_prim_ns)
+        # if imageable_prim_ns:
+        #     imageable_prim_ns.MakeInvisible()
 
-        imageable_prim_wn = UsdGeom.Imageable(first_prim_wn)
-        if imageable_prim_wn:
-            imageable_prim_wn.MakeInvisible()
+        # imageable_prim_wn = UsdGeom.Imageable(first_prim_wn)
+        # if imageable_prim_wn:
+        #     imageable_prim_wn.MakeInvisible()
+
+        foo_prim_path3 = Sdf.Path(f"/World/payload_prim_{self.step-1}")
+        foo_prim_path4 = Sdf.Path(f"/World/payload_prim2_{self.step-1}")
+        
+        check_for_valid_prim3 = self.stage.GetPrimAtPath(foo_prim_path3)
+        check_for_valid_prim4 = self.stage.GetPrimAtPath(foo_prim_path4)
+        
+        if (check_for_valid_prim3 is not None):
+            self.stage.RemovePrim(foo_prim_path3)
+
+        if (check_for_valid_prim4 is not None):    
+            self.stage.RemovePrim(foo_prim_path4)
 
     async def async_on_update(self,dt):
         # test
@@ -240,8 +231,8 @@ class Simulation:
                 await self.async_batch_load(self.step+2)
                 await self.async_batch_load(self.step+3)
                 await self.async_batch_load(self.step+4)
-                # await self.async_batch_load(self.step+5)
-                # await self.async_batch_load(self.step+6)
+                await self.async_batch_load(self.step+5)
+                await self.async_batch_load(self.step+6)
                 
             #if self.step > 1:
                 #await self.async_run_step_unload()  # unloads the existing payload-prim
@@ -252,11 +243,11 @@ class Simulation:
                     await self.async_batch_load(self.step+2)
                     await self.async_batch_load(self.step+3)
                     await self.async_batch_load(self.step+4)
-                    # await self.async_batch_load(self.step+5)
-                    # await self.async_batch_load(self.step+6)
+                    await self.async_batch_load(self.step+5)
+                    await self.async_batch_load(self.step+6)
 
             
-            await self.async_run_step_load()
+            await self.async_run_step_load()  # This is actually a visibility function now
             await self.async_run_step_unload()
             self.step = self.step + 1
             self.batch_counter = 0
