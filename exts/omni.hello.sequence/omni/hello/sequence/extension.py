@@ -40,16 +40,68 @@ def print_gpu_memory_unload(loop_val):
         for gpu in gpus:
             carb.log_warn(f"unload {loop_val}: {gpu.memoryUsed}MB / {gpu.memoryTotal}MB used")
 #aaa
+
+
+
+def create_material(stage, mat_name):
+    """Create a red material."""
+    material_path = f"/World/{mat_name}"
+    
+    material = UsdShade.Material.Define(stage, Sdf.Path(material_path))
+    shader = UsdShade.Shader.Define(stage, Sdf.Path(material_path + "/Shader"))
+    shader.CreateIdAttr("UsdPreviewSurface")
+    shader.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).Set((0.0, 0.0, 1.0))  # Red color
+    material.CreateSurfaceOutput().ConnectToSource(shader.CreateOutput('surface', Sdf.ValueTypeNames.Token))
+    opacity_input = shader.CreateInput("opacity", Sdf.ValueTypeNames.Float)
+     
+ 
+
+    # Set the opacity value
+    opacity_input.Set(1.0)  # Change this value to set the desired opacity
+
+    return material
+
+
+def create_camera_on_startup(stage, camera_path="/World/MyCamera"):
+    """Create a camera on startup from a specific view."""
+    camera_prim = UsdGeom.Camera.Define(stage, camera_path)
+    camera_prim.CreateFocalLengthAttr().Set(50.0)
+    camera_prim.CreateHorizontalApertureAttr().Set(36.0)
+    camera_prim.CreateVerticalApertureAttr().Set(24.0)
+    camera_prim.CreateFStopAttr().Set(5.6)
+    camera_prim.CreateFocusDistanceAttr().Set(1000.0)
+    xform = UsdGeom.Xform(camera_prim.GetPrim())
+    ''''
+    This is where you can change the starting camera position
+    '''
+    pos = Gf.Vec3f(123, 126, 1100) # change starting position
+    translate_op = xform.AddTranslateOp()
+
+    translate_op.Set(pos)
+
+    return camera_prim, translate_op
+
+def update_camera_position(stage, camera_path, target_prim, translate_op):
+    """Update the camera position to look at the target prim."""
+    target_pos = translate_op.Get()
+
+    # Set the camera position above the target
+    new_camera_pos = Gf.Vec3f(target_pos[0], target_pos[1], target_pos[2] + 10.0) # can change to move camera faster
+    translate_op.Set(new_camera_pos)
+
+    
 class Simulation:
     def __init__(self):
         carb.log_warn(f"Simulation Init")
         self.step = 1
         self.start_time = 0
         self.state = f"Uninitialized"
-        self.last_valid_frame = 400
+        self.last_valid_frame = 50
 
-        self.start_frame = 350
-        self.num_to_batch = 12
+        self.delay_time = 3 # seconds 
+
+        self.start_frame = 2
+        self.num_to_batch = 8
         self.batch_step = 1
 
         self.path = None
@@ -61,12 +113,15 @@ class Simulation:
         self.payload_prim2 = None
 
         self.base_directory = "E:/fowler_keynote/awn_converted/awn_00000_thd_"
-        self.base_directory2 = "E:/fowler_keynote/awn_converted/awn_00000_thd_"
+        self.base_directory2 = "E:/fowler_keynote/ans_converted/ans_00000_thd_"
 
         self.stage = omni.usd.get_context().get_stage()
         world_path = Sdf.Path("/World")
         default_prim = UsdGeom.Xform.Define(self.stage, world_path)
         self.stage.SetDefaultPrim(default_prim.GetPrim())
+
+
+   
 
     def getstate(self):
         return self.state
@@ -111,6 +166,13 @@ class Simulation:
     
             carb.log_warn(f"Batch loading initial set:{j}")
 
+            prim_path_ns = f"/World/payload_prim2_{j}"
+            node_path = prim_path_ns + "/node_/mesh_"
+            ns_prim = context.get_stage().GetPrimAtPath(Sdf.Path(node_path))
+            
+            blue_material = create_material(context.get_stage(), "BlueMaterial")
+            material_binding_api = UsdShade.MaterialBindingAPI(ns_prim)
+            material_binding_api.Bind(blue_material)
 
             first_prim_ns = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim_{j}"))
             first_prim_wn = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim2_{j}"))
@@ -129,18 +191,23 @@ class Simulation:
 
 
         else:
-
-            #await asyncio.sleep(0.1)
-
             foo_prim_path = Sdf.Path(f"/World/payload_prim_{j}")
             foo_prim_path2 = Sdf.Path(f"/World/payload_prim2_{j}")
             check_for_valid_prim = self.stage.GetPrimAtPath(foo_prim_path)
             check_for_valid_prim2 = self.stage.GetPrimAtPath(foo_prim_path2)
-            #carb.log_warn(f"${j} self.path=${self.path}  check_for_prim=${foo_prim_path}")
+      
             context: omni.usd.UsdContext = omni.usd.get_context()
             if (check_for_valid_prim is not None):
                 create_payload(context, Sdf.Path(f"/World/payload_prim_{j}"), f"{self.base_directory}{(j):0>3}_stl.usd")
                 create_payload(context, Sdf.Path(f"/World/payload_prim2_{j}"), f"{self.base_directory2}{(j):0>3}_stl.usd")
+
+                prim_path_ns = f"/World/payload_prim2_{j}"
+                node_path = prim_path_ns + "/node_/mesh_"
+                ns_prim = context.get_stage().GetPrimAtPath(Sdf.Path(node_path))
+                
+                blue_material = create_material(context.get_stage(), "BlueMaterial")
+                material_binding_api = UsdShade.MaterialBindingAPI(ns_prim)
+                material_binding_api.Bind(blue_material)
         
             if (check_for_valid_prim2 is not None):
                 context2: omni.usd.UsdContext = omni.usd.get_context()
@@ -193,15 +260,6 @@ class Simulation:
         
         first_prim_ns = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim_{self.step-1}"))
         first_prim_wn = context.get_stage().GetPrimAtPath(Sdf.Path(f"/World/payload_prim2_{self.step-1}"))
-        
-
-        # imageable_prim_ns = UsdGeom.Imageable(first_prim_ns)
-        # if imageable_prim_ns:
-        #     imageable_prim_ns.MakeInvisible()
-
-        # imageable_prim_wn = UsdGeom.Imageable(first_prim_wn)
-        # if imageable_prim_wn:
-        #     imageable_prim_wn.MakeInvisible()
 
         foo_prim_path3 = Sdf.Path(f"/World/payload_prim_{self.step-1}")
         foo_prim_path4 = Sdf.Path(f"/World/payload_prim2_{self.step-1}")
@@ -224,7 +282,7 @@ class Simulation:
             await self.async_run_step_unload()
             self.step = self.start_frame
         time_difference = time.time() - self.start_time
-        if time_difference > 1:  # Delay between frames is here
+        if time_difference > self.delay_time:  # Delay between frames is here
             if self.step == self.start_frame:
                 await self.async_batch_load(self.step)
                 await self.async_batch_load(self.step+1)
