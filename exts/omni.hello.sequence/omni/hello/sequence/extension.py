@@ -74,12 +74,18 @@ def create_camera_on_startup(stage, camera_path="/World/MyCamera"):
     ''''
     This is where you can change the starting camera position
     '''
-    pos = Gf.Vec3f(123, 126, 1100) # change starting position
+    pos = Gf.Vec3f(-404.75171379422227, 584.475849824866, 5582.841149111909) # change starting position
     translate_op = xform.AddTranslateOp()
+    translate_op.Set(pos)    
+    
+    
+    rotate_op = xform.AddRotateXYZOp()
 
-    translate_op.Set(pos)
+    rotate_op.Set((-9.476735, -17.173437, 0))
 
-    return camera_prim, translate_op
+   
+
+    return camera_prim, translate_op, rotate_op
 
 def update_camera_position(stage, camera_path, target_prim, translate_op):
     """Update the camera position to look at the target prim."""
@@ -89,7 +95,7 @@ def update_camera_position(stage, camera_path, target_prim, translate_op):
     new_camera_pos = Gf.Vec3f(target_pos[0], target_pos[1], target_pos[2] + 10.0) # can change to move camera faster
     translate_op.Set(new_camera_pos)
 
-    
+
 class Simulation:
     def __init__(self):
         carb.log_warn(f"Simulation Init")
@@ -119,6 +125,9 @@ class Simulation:
         world_path = Sdf.Path("/World")
         default_prim = UsdGeom.Xform.Define(self.stage, world_path)
         self.stage.SetDefaultPrim(default_prim.GetPrim())
+
+        camera_path = "/World/MyCamera"
+        self.camera, translate_op, rotate_op = create_camera_on_startup(self.stage, camera_path )
 
 
    
@@ -321,6 +330,7 @@ class Simulation:
 
 
     def start(self):
+
         carb.log_warn(f"Simulation Start")
         # Get the USD context
         #context = Usd.Context.Get()
