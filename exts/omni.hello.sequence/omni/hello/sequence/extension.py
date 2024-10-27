@@ -74,14 +74,23 @@ def create_camera_on_startup(stage, camera_path="/World/MyCamera"):
     ''''
     This is where you can change the starting camera position
     '''
-    pos = Gf.Vec3f(-404.75171379422227, 584.475849824866, 5582.841149111909) # change starting position
+    # pos = Gf.Vec3f(-404.75171379422227, 584.475849824866, 5582.841149111909) # change starting position
+    # translate_op = xform.AddTranslateOp()
+    # translate_op.Set(pos)    
+    
+    
+    # rotate_op = xform.AddRotateXYZOp()
+
+    # rotate_op.Set((-9.476735, -17.173437, 0))
+
+    pos = Gf.Vec3f(-6051.477, 1415.976, 2049.387) # change starting position
     translate_op = xform.AddTranslateOp()
     translate_op.Set(pos)    
     
     
     rotate_op = xform.AddRotateXYZOp()
 
-    rotate_op.Set((-9.476735, -17.173437, 0))
+    rotate_op.Set((-8.35173, -89.6525, 0))
 
    
 
@@ -102,11 +111,11 @@ class Simulation:
         self.step = 1
         self.start_time = 0
         self.state = f"Uninitialized"
-        self.last_valid_frame = 50
+        self.last_valid_frame = 325
 
-        self.delay_time = 3 # seconds 
+        self.delay_time = 40 # seconds 
 
-        self.start_frame = 2
+        self.start_frame = 180
         self.num_to_batch = 8
         self.batch_step = 1
 
@@ -225,20 +234,6 @@ class Simulation:
                 carb.log_warn(f"Batch loading: ${j}")
 
 
-                # for hist in range(1,self.num_to_batch):
-                #     foo_prim_path3 = Sdf.Path(f"/World/payload_prim_{self.step-hist}")
-                #     foo_prim_path4 = Sdf.Path(f"/World/payload_prim2_{self.step-hist}")
-                    
-                #     check_for_valid_prim3 = self.stage.GetPrimAtPath(foo_prim_path3)
-                #     check_for_valid_prim4 = self.stage.GetPrimAtPath(foo_prim_path4)
-                    
-                #     if (check_for_valid_prim3 is not None):
-                #         self.stage.RemovePrim(foo_prim_path3)
-
-                #     if (check_for_valid_prim4 is not None):    
-                #         self.stage.RemovePrim(foo_prim_path4)
-
-
     async def async_batch_unload(self):
             carb.log_warn(f"In batch unloading function at step:${self.step}")
             for j in range(self.step-2*self.num_to_batch, self.step-self.num_to_batch):
@@ -297,29 +292,18 @@ class Simulation:
                 await self.async_batch_load(self.step+1)
                 await self.async_batch_load(self.step+2)
                 await self.async_batch_load(self.step+3)
-                await self.async_batch_load(self.step+4)
-                await self.async_batch_load(self.step+5)
-                await self.async_batch_load(self.step+6)
-                await self.async_batch_load(self.step+7)
-                await self.async_batch_load(self.step+8)
-                await self.async_batch_load(self.step+9)
-                await self.async_batch_load(self.step+10)
+
                 
             #if self.step > 1:
                 #await self.async_run_step_unload()  # unloads the existing payload-prim
             if self.step > self.start_frame:
-                if self.step%(self.num_to_batch - self.num_to_batch/2)== 0:
+                if self.step%(self.num_to_batch - self.num_to_batch/2 -2 )== 0:
                     await self.async_batch_load(self.step)
                     await self.async_batch_load(self.step+1)
                     await self.async_batch_load(self.step+2)
                     await self.async_batch_load(self.step+3)
-                    await self.async_batch_load(self.step+4)
-                    await self.async_batch_load(self.step+5)
-                    await self.async_batch_load(self.step+6)
-                    await self.async_batch_load(self.step+7)
-                    await self.async_batch_load(self.step+8)
-                    await self.async_batch_load(self.step+9)
-                    await self.async_batch_load(self.step+10)
+
+
 
             
             await self.async_run_step_load()  # This is actually a visibility function now
